@@ -35,7 +35,7 @@ say "Running the import on $VMSS_NAME instance $INSTANCE_ID"
 # read the database password from Key Vault with its managed identity, so
 # no credential travels over this command.
 read -r -d '' SCRIPT <<'REMOTE' || true
-set -euo pipefail
+set -eu
 
 CONFIG=/opt/hotel/app/db_config.py
 SCHEMA=$(find /opt/hotel/src -name '01_schema.sql' -print -quit)

@@ -111,7 +111,7 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-11-01' = {
           // instance for the whole session. Cookie affinity does that.
           affinityCookieName: 'HotelAppAffinity'
           requestTimeout: 120
-          pickHostNameFromBackendAddress: false
+          pickHostNameFromBackendAddress: true
           probe: {
             id: resourceId('Microsoft.Network/applicationGateways/probes', gatewayName, 'appHealthProbe')
           }

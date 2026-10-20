@@ -99,6 +99,9 @@ write_files:
         --server.port=8501 \
         --server.address=0.0.0.0 \
         --server.headless=true \
+        --server.enableCORS=false \
+        --server.enableXsrfProtection=false \
+        --server.enableWebsocketCompression=false \
         --browser.gatherUsageStats=false
       Restart=always
       RestartSec=10
@@ -112,6 +115,7 @@ runcmd:
 
   # Pull the application source.
   - [ git, clone, --depth, '1', "__REPO_URL__", /opt/hotel/src ]
+  - [ install, -d, -m, '0750', -o, hotelapp, -g, hotelapp, /opt/hotel/app ]
   - [ bash, -lc, "cp -r /opt/hotel/src/src/* /opt/hotel/app/ 2>/dev/null || cp -r /opt/hotel/src/* /opt/hotel/app/" ]
 
   # Virtual environment keeps project packages off the system Python.

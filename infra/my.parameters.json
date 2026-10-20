@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "prefix": {
+      "value": "hotel"
+    },
+    "adminUsername": {
+      "value": "azureuser"
+    },
+    "adminSshPublicKey": {
+      "value": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCX9JgPYNNf2mJOLECLabB8WAvCkAvKH1MRDMW1IbV/meJvlW2Y3mUrV2MoAss+NsyojomPXRuPLbxT2KFVttLAq9dri63q9HWSCRQM2qrJURYZtxg8R3i8FkJgidPiV1D0713jel0GqSTkmen3BBA7k+Up0+E1pf/iFwl78qEoS9x6+ac6niKMXdTpE7DB5QmXVd4Ai6dlrdcqY3Yo/gO3HFSI3gnZWi3b10JhiWDV0SvmEygP0k4yXAHHaHYNf1ja8LwDFKRvuaGgFaqP3VrgyD/eDOuI3886c+HJMJqqq83Qp/TFHJ4XMdc4ZJU0S5jTniL6ObHX56rDyvY5RtJT8RLgGztgvyPrf07dNnA+JCFHtWBf8zhGuli9pnTlY7uqJe1zbGjSDaw1WqLLQGykqQCzOfgot2rg41RhBDO8Cd/xBfjmaW7aiOSqMfoWExgML/F+iW7d8N35+Pxlub5/KGTncX08JCs0yE8urZI01lGSnvQLox7PFtS15UaZbRJOLAWhgCxJ4VxsbCMD//zjX+N4fST6nEtlxcTUZenMafv5v3d3lljxTZ3C7M9xR4wskPelBDtZ5x9ucjKCAXdd94AsG2Ga5V66L/PrDhQ2mkF7JYUqL6fsNTl4Zk+vxp1jg9/mS0i+5tUlR6QNDS+nSpbgpN1rSIcj7PGZC754IQ== mithul@SandboxHost-639280960680597767"
+    },
+    "dbAdminLogin": {
+      "value": "hoteladmin"
+    },
+    "repositoryUrl": {
+      "value": "https://github.com/mithulakshay08/hotel-management-azure.git"
+    },
+    "alertEmail": {
+      "value": "mithulakshay01@gmail.com"
+    },
+    "dbSkuName": {
+      "value": "Standard_B1ms"
+    },
+    "enableDatabaseHa": {
+      "value": false
+    },
+    "minInstances": {
+      "value": 2
+    },
+    "maxInstances": {
+      "value": 6
+    },
+    "vmSize": {
+      "value": "Standard_B2s_v2"
+    }
+  }
+}
