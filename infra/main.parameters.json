@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "prefix": {
+      "value": "hotel"
+    },
+    "adminUsername": {
+      "value": "azureuser"
+    },
+    "adminSshPublicKey": {
+      "value": "REPLACE_WITH_CONTENTS_OF_~/.ssh/id_rsa.pub"
+    },
+    "dbAdminLogin": {
+      "value": "hoteladmin"
+    },
+    "repositoryUrl": {
+      "value": "https://github.com/REPLACE_WITH_YOUR_USERNAME/hotel-management-system.git"
+    },
+    "alertEmail": {
+      "value": "REPLACE_WITH_YOUR_EMAIL@example.com"
+    },
+    "dbSkuName": {
+      "value": "Standard_B1ms"
+    },
+    "enableDatabaseHa": {
+      "value": false
+    },
+    "minInstances": {
+      "value": 2
+    },
+    "maxInstances": {
+      "value": 6
+    },
+    "vmSize": {
+      "value": "Standard_B2s"
+    }
+  }
+}

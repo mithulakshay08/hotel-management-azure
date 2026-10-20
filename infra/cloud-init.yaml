@@ -1,0 +1,129 @@
+#cloud-config
+# ============================================================
+#  Bootstraps one application instance.
+#  Runs on every VM the scale set creates, including instances
+#  added later by autoscale, so it must be idempotent and must
+#  not assume it is the first machine to start.
+#
+#  Placeholders written in double-underscore caps are substituted by main.bicep
+#  at deployment time.
+# ============================================================
+
+package_update: true
+
+packages:
+  - python3-pip
+  - python3-venv
+  - git
+  - mysql-client
+  - jq
+  - curl
+
+write_files:
+  # ----------------------------------------------------------
+  #  Fetches the database password from Key Vault using the
+  #  instance's managed identity, then writes the application's
+  #  config file. No credential is stored in the image or repo.
+  # ----------------------------------------------------------
+  - path: /opt/hotel/fetch-secret.sh
+    permissions: '0750'
+    owner: root:root
+    content: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+
+      VAULT="__KEYVAULT_NAME__"
+      SECRET="__SECRET_NAME__"
+      IMDS="http://169.254.169.254/metadata/identity/oauth2/token"
+
+      # The managed identity endpoint is only reachable from inside the VM.
+      # Retry: the identity can take a few seconds to become usable on a
+      # freshly created instance.
+      for attempt in $(seq 1 30); do
+        TOKEN=$(curl -s -H "Metadata: true" \
+          "${IMDS}?api-version=2018-02-01&resource=https%3A%2F%2Fvault.azure.net" \
+          | jq -r '.access_token // empty') || true
+        if [ -n "${TOKEN:-}" ]; then break; fi
+        echo "waiting for managed identity (attempt ${attempt})" >&2
+        sleep 10
+      done
+
+      if [ -z "${TOKEN:-}" ]; then
+        echo "could not obtain a managed identity token" >&2
+        exit 1
+      fi
+
+      PASSWORD=$(curl -s -H "Authorization: Bearer ${TOKEN}" \
+        "https://${VAULT}.vault.azure.net/secrets/${SECRET}?api-version=7.4" \
+        | jq -r '.value // empty')
+
+      if [ -z "${PASSWORD}" ]; then
+        echo "could not read secret ${SECRET} from vault ${VAULT}" >&2
+        exit 1
+      fi
+
+      # Written with restrictive permissions; only the service user reads it.
+      install -d -m 0750 -o hotelapp -g hotelapp /opt/hotel/app
+      cat > /opt/hotel/app/db_config.py <<EOF
+      # Generated at boot from Azure Key Vault. Do not edit or commit.
+      DB_CONFIG = {
+          "host": "__MYSQL_FQDN__",
+          "user": "__DB_USER__",
+          "password": "${PASSWORD}",
+          "database": "__DB_NAME__",
+          "port": 3306,
+      }
+      EOF
+      chown hotelapp:hotelapp /opt/hotel/app/db_config.py
+      chmod 0640 /opt/hotel/app/db_config.py
+
+  # ----------------------------------------------------------
+  #  systemd unit, so the application restarts on failure and
+  #  comes back automatically after a reboot.
+  # ----------------------------------------------------------
+  - path: /etc/systemd/system/hotel-app.service
+    permissions: '0644'
+    owner: root:root
+    content: |
+      [Unit]
+      Description=Hotel Management System (Streamlit)
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      Type=simple
+      User=hotelapp
+      Group=hotelapp
+      WorkingDirectory=/opt/hotel/app
+      ExecStart=/opt/hotel/venv/bin/streamlit run app_streamlit.py \
+        --server.port=8501 \
+        --server.address=0.0.0.0 \
+        --server.headless=true \
+        --browser.gatherUsageStats=false
+      Restart=always
+      RestartSec=10
+
+      [Install]
+      WantedBy=multi-user.target
+
+runcmd:
+  # Unprivileged service account; the app never runs as root.
+  - [ useradd, --system, --create-home, --home-dir, /opt/hotel, --shell, /usr/sbin/nologin, hotelapp ]
+
+  # Pull the application source.
+  - [ git, clone, --depth, '1', "__REPO_URL__", /opt/hotel/src ]
+  - [ bash, -lc, "cp -r /opt/hotel/src/src/* /opt/hotel/app/ 2>/dev/null || cp -r /opt/hotel/src/* /opt/hotel/app/" ]
+
+  # Virtual environment keeps project packages off the system Python.
+  - [ python3, -m, venv, /opt/hotel/venv ]
+  - [ /opt/hotel/venv/bin/pip, install, --upgrade, pip ]
+  - [ /opt/hotel/venv/bin/pip, install, streamlit, pandas, mysql-connector-python ]
+
+  # Credentials last, immediately before the service starts.
+  - [ bash, /opt/hotel/fetch-secret.sh ]
+
+  - [ chown, '-R', 'hotelapp:hotelapp', /opt/hotel ]
+  - [ systemctl, daemon-reload ]
+  - [ systemctl, enable, '--now', hotel-app.service ]
+
+final_message: "Hotel Management System instance ready after $UPTIME seconds"
