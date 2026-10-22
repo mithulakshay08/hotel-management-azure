@@ -64,6 +64,7 @@ az deployment group validate \
   --resource-group "$RG" \
   --template-file main.bicep \
   --parameters "@$PARAM_FILE" \
+  --parameters location="$LOCATION" \
   --parameters adminSshPublicKey="$(cat "$SSH_KEY")" \
   --parameters dbAdminPassword="$DB_PASSWORD" \
   --output none \
@@ -81,6 +82,7 @@ az deployment group create \
   --name "$DEPLOY_NAME" \
   --template-file main.bicep \
   --parameters "@$PARAM_FILE" \
+  --parameters location="$LOCATION" \
   --parameters adminSshPublicKey="$(cat "$SSH_KEY")" \
   --parameters dbAdminPassword="$DB_PASSWORD" \
   --output none

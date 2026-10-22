@@ -33,7 +33,7 @@
       "value": 6
     },
     "vmSize": {
-      "value": "Standard_B2s"
+      "value": "Standard_B2s_v2"
     }
   }
 }
